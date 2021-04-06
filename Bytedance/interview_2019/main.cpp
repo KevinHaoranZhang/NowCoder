@@ -2,10 +2,10 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <map>
 
 using namespace std;
 
-typedef long long LL;
 /* Question 1
  * @ Description:
  *
@@ -102,6 +102,46 @@ void question3();
 vector<int> available_num(vector<int> input_card_list, vector<int> card_counter);
 bool is_win(vector<int> remaining_card_list);
 
+/* Question 4
+ * @ Description
+ *
+ * 小明是一名算法工程师，同时也是一名铲屎官。某天，他突发奇想，想从猫咪的视频里挖掘一些猫咪的运动信息。为了提取运动信息，他需要从视频的每一帧提取“猫咪特征”。
+ * 一个猫咪特征是一个两维的vector<x, y>。如果x_1=x_2 and y_1=y_2，那么这俩是同一个特征。
+ * 因此，如果喵咪特征连续一致，可以认为喵咪在运动。也就是说，如果特征<a, b>在持续帧里出现，那么它将构成特征运动。
+ * 比如，特征<a, b>在第2/3/4/7/8帧出现，那么该特征将形成两个特征运动2-3-4 和7-8。
+ * 现在，给定每一帧的特征，特征的数量可能不一样。小明期望能找到最长的特征运动。
+ *
+ * @ Input Example:
+ * 第一行包含一个正整数N，代表测试用例的个数。
+ *
+ * 每个测试用例的第一行包含一个正整数M，代表视频的帧数。
+ *
+ * 接下来的M行，每行代表一帧。其中，第一个数字是该帧的特征个数，接下来的数字是在特征的取值；比如样例输入第三行里，2代表该帧有两个猫咪特征，<1，1>和<2，2>
+ * 所有用例的输入特征总数和<100000
+ *
+ * N满足1≤N≤100000，M满足1≤M≤10000，一帧的特征个数满足 ≤ 10000。
+ * 特征取值均为非负整数。
+ *
+ * 1
+ * 8
+ * 2 1 1 2 2
+ * 2 1 1 1 4
+ * 2 1 1 2 2
+ * 2 2 2 1 4
+ * 0
+ * 0
+ * 1 1 1
+ * 1 1 1
+ *
+ * @ Output Example:
+ * 对每一个测试用例，输出特征运动的长度作为一行
+ *
+ * 3
+ * 特征<1,1>在连续的帧中连续出现3次，相比其他特征连续出现的次数大，所以输出3
+ */
+
+void question4();
+
 int main() {
     // question 1
     // question1();
@@ -110,7 +150,10 @@ int main() {
     // question2();
 
     // question 3
-    question3();
+    // question3();
+
+    // question 4
+    question4();
     return 0;
 }
 
@@ -275,3 +318,32 @@ bool is_win(vector<int> remaining_card_list) {
     return false;
 }
 
+// question 4
+void question4() {
+    int total_move = 0;
+    cin >> total_move;
+    while (total_move--) {
+        int sub_move = 0;
+        cin >> sub_move;
+        map<pair<int, int>, int> cur_move_dic;
+        map<pair<int, int>, int> prev_move_dic;
+        pair<int, int> move;
+        int count = 0;
+        while (sub_move--) {
+            int size = 0;
+            cin >> size;
+            for (int i = 0; i < size; i++) {
+                cin >> move.first >> move.second;
+                if (prev_move_dic.count(move)) {
+                    cur_move_dic[move] = prev_move_dic[move] + 1;
+                } else {
+                    cur_move_dic[move] += 1;
+                }
+                count = max(count, cur_move_dic[move]);
+            }
+            prev_move_dic.clear();
+            prev_move_dic.swap(cur_move_dic);
+        }
+        cout << count << endl;
+    }
+}
