@@ -142,6 +142,34 @@ bool is_win(vector<int> remaining_card_list);
 
 void question4();
 
+/* Question 5
+ * @ Description
+ * 小明目前在做一份毕业旅行的规划。打算从北京出发，分别去若干个城市，然后再回到北京，每个城市之间均乘坐高铁，且每个城市只去一次。
+ * 由于经费有限，希望能够通过合理的路线安排尽可能的省一些路上的花销。给定一组城市和每对城市之间的火车票的价钱，找到每个城市只访问一次并返回起点的最小车费花销。
+ *
+ * @ Input Example:
+ * 城市个数n（1<n≤20，包括北京）
+ *
+ * 城市间的车票价钱 n行n列的矩阵 m[n][n]
+ *
+ * 4
+ * 0 2 6 5
+ * 2 0 4 4
+ * 6 4 0 2
+ * 5 4 2 0
+ *
+ * 共 4 个城市，城市 1 和城市 1 的车费为0，城市 1 和城市 2 之间的车费为 2，城市 1 和城市 3 之间的车费为 6，城市 1 和城市 4 之间的车费为 5，依次类推。
+ * 假设任意两个城市之间均有单程票可购买，且票价在1000元以内，无需考虑极端情况。
+ *
+ * @ Output Example:
+ * 最小车费花销 s
+ *
+ * 13
+ */
+
+void question5();
+void dp_tsp(vector<vector<int>> city_dis);
+
 int main() {
     // question 1
     // question1();
@@ -153,7 +181,11 @@ int main() {
     // question3();
 
     // question 4
-    question4();
+    // question4();
+
+    // question 5
+    question5();
+
     return 0;
 }
 
@@ -325,7 +357,9 @@ void question4() {
     while (total_move--) {
         int sub_move = 0;
         cin >> sub_move;
+        // first map keeps track of current set of movement
         map<pair<int, int>, int> cur_move_dic;
+        // second map keeps track of previous accumulated sets of movement
         map<pair<int, int>, int> prev_move_dic;
         pair<int, int> move;
         int count = 0;
@@ -346,4 +380,90 @@ void question4() {
         }
         cout << count << endl;
     }
+}
+
+// question 5
+void question5() {
+    int city_num = 0;
+    cin >> city_num;
+    vector<vector<int>> city_dis(city_num, vector<int>(city_num));
+    for (int i = 0; i < city_num; i++) {
+        for (int j = 0; j < city_num; j++) {
+            cin >> city_dis[i][j];
+        }
+    }
+    dp_tsp(city_dis);
+}
+
+/* 这题太难了，参考https://www.geek-share.com/detail/2802225362.html
+ * 1 出发城市：0 ；经过{1，2，3}各城市有且仅有一次，再回到出发城市0
+ * 2 dp[i]{v}:表示从城市i出发，经过集合v，回到出发点0 的最段路径
+ * 3 最后结果dp[0]{1,2,3};
+ *
+ * dp[0]{1,2,3}=min(dis[0][1]+dp[1]{2,3}，dis[0][2]+dp[2]{1,3}，dis[0][3]+dp[3]{1,2})
+ *
+ * dp[i]{v}=min(dis[i][k]+dp[k]{v-k});(i不属于v，k属于v)
+ * 初始条件：
+ * dp[i]{}=dis[i][0];//从i出发，不经过任何城市，回到城市0
+ *
+ * 1 怎么表示集合V？
+ * 除出发城市0 外剩下的城市为{1，2，3}，则剩下城市所包含的所有子集为
+ * {}，{1}，{2}，{3}，{1，2}，{1，3}，{2，3}，{1，2，3}正好2^（n-1）个
+ *
+ * 设dp[i][j]中j为除出发点之外剩下的城市集合，则j的二进制中第i为正好对应第i个城市是否在j中。如：dp[0][7]=dp[0]{3,2,1} dp[0][5]=dp[0]{3,1}。
+ * 则dp表的列数为2^（n-1）列：（可写为1<<(n-1)）
+ *
+ * 2 怎么查看集合j中某一位的状态？（判断城市k是否在集合中
+ * 采用(j>>(k-1))&1==1判断，等于1则在，等于0则不在
+ * 如：判断城市1，2是否在集合j=5={3，1}中；
+ * (j>>(1-1))&1=5&1=101&001=1:则城市1在集合j=5中
+ * (j>>(2-1))&1=2&1=10&01=0:则城市2不在集合j=5中
+ *
+ * 3 怎么将集合j中某个城市置0？（即从集合j中取出某个城市k）
+ * j^(1<<(k-1)) (和0异或不变，和1异或取反)
+ * 如从集合j=7={3，2，1}中取出城市2变为j={3,1}=101=5;
+ * 7^(1<<(2-1))=7 ^ 2=111 ^ 010=101=5;
+ */
+
+void dp_tsp(vector<vector<int>> dis) {
+    int city_num = dis.size();
+    // dp[i][j] 代表了dp[i]{v}的最小值
+    vector<vector<int>>dp(city_num, vector<int>(1 << (city_num - 1)));//n行 2^(n-1)列
+
+    //初始化dp表的第一列：dp[k]{}
+    for (int i = 0; i < city_num; i++) {
+        dp[i][0] = dis[i][0];
+    }
+//填dp表的剩余列：1—（2^(n-1)-1）列
+    for (int j = 1; j < (1 << (city_num - 1));j++)
+    {
+        for (int i = 0; i < city_num; i++)
+        {
+//将其初始化为最大值
+            dp[i][j] = 10000 ;
+//如果城市i在集合j中，跳过
+            if (((j >> (i - 1)) & 1) == 1)
+                continue;
+//城市i不在j中，则dp[i]{v}=min(dis[i][k]+dp[k]{v-k});(i不属于v，k属于v)
+            if (((j >> (i - 1)) & 1) == 0)
+            {
+
+                for (int k = 1; k < city_num; k++)
+                {
+//除i以外所有在j中的城市城市
+                    if ((j >> (k - 1)) & 1 == 1)
+                    {
+//取出城市k
+                        if (dp[i][j]>dis[i][k] + dp[k][j ^ (1 << (k - 1))])
+                        {
+//取值小的
+                            dp[i][j] = dis[i][k] + dp[k][j ^ (1 << (k - 1))];
+                        }
+                    }
+                }
+            }
+        }
+    }
+//输出结果：dp[0][7]=dp[0]{1,2,3}
+    cout << dp[0][(1<<(city_num-1))-1] << endl;
 }
