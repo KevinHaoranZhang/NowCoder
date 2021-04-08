@@ -170,6 +170,25 @@ void question4();
 void question5();
 void dp_tsp(vector<vector<int>> city_dis);
 
+/* Question 6
+ * @ Description
+ * Z国的货币系统包含面值1元、4元、16元、64元共计4种硬币，以及面值1024元的纸币。
+ * 现在小Y使用1024元的纸币购买了一件价值为的商品，请问最少他会收到多少硬币？
+ *
+ * @ Input Example:
+ * 一行，包含一个数N。
+ *
+ * 200
+ *
+ * @ Output Example:
+ * 一行，包含一个数，表示最少收到的硬币数。
+ *
+ * 17
+ * 花200，需要找零824块，找12个64元硬币，3个16元硬币，2个4元硬币即可。
+ */
+
+void question6();
+
 int main() {
     // question 1
     // question1();
@@ -184,7 +203,10 @@ int main() {
     // question4();
 
     // question 5
-    question5();
+    // question5();
+
+    // quetion6
+    question6();
 
     return 0;
 }
@@ -466,4 +488,18 @@ void dp_tsp(vector<vector<int>> dis) {
     }
 //输出结果：dp[0][7]=dp[0]{1,2,3}
     cout << dp[0][(1<<(city_num-1))-1] << endl;
+}
+
+// question 6
+void question6() {
+    int price = 0;
+    cin >> price;
+    int change = 1024 - price;
+    int num_coin = 0;
+    int coin_list[4] = {64, 16, 4, 1};
+    for (int i = 0; i < 4; i++) {
+        num_coin += change / coin_list[i];
+        change %= coin_list[i];
+    }
+    cout << num_coin << endl;
 }
