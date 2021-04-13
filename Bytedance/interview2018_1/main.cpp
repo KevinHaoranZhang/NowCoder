@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
-
+#include <string>         // std::string
+#include <algorithm>
+#include <numeric>
 using namespace std;
 /* Question 1
  * @ Description
@@ -28,11 +30,48 @@ using namespace std;
  */
 
 void question1();
-void find_max_set(vector<pair<int, int>> input_set);
+void find_max_set(vector<pair<int, int>> input_list);
+
+/* Description
+ * 给定一个数组序列, 需要求选出一个区间, 使得该区间是所有区间中经过如下计算的值最大的一个：
+ * 区间中的最小数 * 区间所有数的和最后程序输出经过计算后的最大值即可，不需要输出具体的区间。
+ * 如给定序列  [6 2 1]则根据上述公式, 可得到所有可以选定各个区间的计算值:
+ *
+ * [6] = 6 * 6 = 36;
+ * [2] = 2 * 2 = 4;
+ * [1] = 1 * 1 = 1;
+ * [6,2] = 2 * 8 = 16;
+ * [2,1] = 1 * 3 = 3;
+ * [6, 2, 1] = 1 * 9 = 9;
+ *
+ * 从上述计算可见选定区间 [6] ，计算值为 36， 则程序输出为 36。
+ * 区间内的所有数字都在[0, 100]的范围内;
+ *
+ * @ Input Example:
+ * 第一行输入数组序列长度n，第二行输入数组序列。
+ * 对于 50%的数据,  1 <= n <= 10000;
+ * 对于 100%的数据, 1 <= n <= 500000;
+ *
+ * 3
+ * 6 2 1
+ *
+ * @ Output Example:
+ * 输出数组经过计算后的最大值。
+ *
+ * 36
+ */
+vector<int> sub_set;
+vector<vector<int>> all_sub_set;
+void question2();
+void find_max_subset(int cur_index, vector<int>& input_list);
 
 int main() {
-    // question1;
-    question1();
+    // question1
+    // question1();
+
+    // question2
+    question2();
+
     return 0;
 }
 
@@ -76,3 +115,32 @@ void find_max_set(vector<pair<int, int>> input_set) {
     }
 }
 
+// question2
+void question2() {
+    int list_size = 0;
+    vector<int> input_list;
+    cin >> list_size;
+    for (int i = 0; i < list_size; i++) {
+        int num;
+        cin >> num;
+        input_list.push_back(num);
+    }
+    long max = input_list[0] * input_list[0];
+    for (int i = 0; i < input_list.size(); i++) {
+        long sum  = input_list[i];
+        int min = input_list[i];
+        for (int j = i + 1; j < input_list.size(); j++) {
+            if (input_list[j] == 0) {
+                break;
+            }
+            sum += input_list[j];
+            if (min > input_list[j]) {
+                min = input_list[j];
+            }
+            if (min * sum > max) {
+                max = min * sum;
+            }
+        }
+    }
+    cout << max << endl;
+}
