@@ -3,6 +3,8 @@
 #include <string>         // std::string
 #include <algorithm>
 #include <numeric>
+#include <queue>
+
 using namespace std;
 /* Question 1
  * @ Description
@@ -60,17 +62,48 @@ void find_max_set(vector<pair<int, int>> input_list);
  *
  * 36
  */
-vector<int> sub_set;
-vector<vector<int>> all_sub_set;
 void question2();
-void find_max_subset(int cur_index, vector<int>& input_list);
+
+/* Question 3
+ * @ Description
+ * 产品经理(PM)有很多好的idea，而这些idea需要程序员实现。现在有N个PM，在某个时间会想出一个 idea，每个 idea 有提出时间、所需时间和优先等级。
+ * 对于一个PM来说，最想实现的idea首先考虑优先等级高的，相同的情况下优先所需时间最小的，还相同的情况下选择最早想出的，没有 PM 会在同一时刻提出两个 idea。
+ * 同时有M个程序员，每个程序员空闲的时候就会查看每个PM尚未执行并且最想完成的一个idea,然后从中挑选出所需时间最小的一个idea独立实现，如果所需时间相同则选择PM序号最小的。
+ * 直到完成了idea才会重复上述操作。如果有多个同时处于空闲状态的程序员，那么他们会依次进行查看idea的操作。
+ * 求每个idea实现的时间。
+ *
+ * @ Input Example
+ * 输入第一行三个数N、M、P，分别表示有N个PM，M个程序员，P个idea。
+ * 随后有P行，每行有4个数字，分别是PM序号、提出时间、优先等级和所需时间。
+ *
+ * 2 2 5
+ * 1 1 1 2
+ * 1 2 1 1
+ * 1 3 2 2
+ * 2 1 1 2
+ * 2 3 5 5
+ *
+ * @ Output Example
+ * 输出P行，分别表示每个idea实现的时间点。
+ *
+ * 3
+ * 4
+ * 5
+ * 3
+ * 9
+ */
+// 这题太难了，参考大佬：https://blog.csdn.net/qq_41922018/article/details/104798916
+void question3();
 
 int main() {
     // question1
     // question1();
 
     // question2
-    question2();
+    // question2();
+
+    // question3
+    question3();
 
     return 0;
 }
@@ -143,4 +176,74 @@ void question2() {
         }
     }
     cout << max << endl;
+}
+
+struct idea{
+    int id,pm,time,priority,cost;
+    idea(int id_,int pm_,int time_,int priority_,int cost_):id(id_),pm(pm_),time(time_),priority(priority_),cost(cost_){}
+};
+bool cmp_time(const idea& idea1,const idea& idea2){
+    return idea1.time<idea2.time;
+}
+struct cmp_pm{
+    bool operator()(const idea&a,const idea& b){
+        if(a.priority!=b.priority)
+            return a.priority<b.priority;
+        if(a.cost!=b.cost)
+            return a.cost>b.cost;
+        return a.time>b.time;
+    }
+};
+struct cmp_worker{
+    bool operator()(const idea& a,const idea& b){
+        if(a.cost!=b.cost)
+            return a.cost>b.cost;
+        return a.pm>b.pm;
+    }
+};
+priority_queue<idea,vector<idea>,cmp_pm> cur_ideas[3010];
+void question3(){
+    int N,M,P;
+    cin>>N>>M>>P;
+    int i,pm,t,l,cost;
+    vector<idea> ideas;
+    for(i=0;i<P;i++){
+        cin>>pm>>t>>l>>cost;
+        ideas.push_back(idea(i,pm-1,t,l,cost));
+    }
+    vector<int> workers(M,0);
+    vector<int> finished(P);
+    sort(ideas.begin(),ideas.end(),cmp_time);
+    int count=0,p=0,time=1;
+    while(count<P){
+        while(p<P&&ideas[p].time<=time){
+            int pm_=ideas[p].pm;
+            cur_ideas[pm_].push(ideas[p]);
+            p++;
+        }
+        priority_queue<idea,vector<idea>,cmp_worker> Q;
+        for(i=0;i<N;i++){
+            if(!cur_ideas[i].empty()){
+                Q.push(cur_ideas[i].top());
+            }
+        }
+        for(i=0;i<M;i++){
+            if(workers[i]>0){
+                workers[i]--;
+            }
+            if(workers[i]==0&&!Q.empty()){
+                idea tmp=Q.top();
+                Q.pop();
+                workers[i]=tmp.cost;
+                finished[tmp.id]=time+tmp.cost;
+                cur_ideas[tmp.pm].pop();
+                if(!cur_ideas[tmp.pm].empty())
+                    Q.push(cur_ideas[tmp.pm].top());
+                count++;
+            }
+        }
+        time++;
+    }
+    for(i=0;i<P;i++)
+        cout<<finished[i]<<endl;
 }
